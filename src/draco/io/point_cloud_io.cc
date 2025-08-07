@@ -18,6 +18,7 @@
 #include "draco/io/obj_decoder.h"
 #include "draco/io/parser_utils.h"
 #include "draco/io/ply_decoder.h"
+#include "draco/io/xyz_reader.h"
 
 namespace draco {
 
@@ -41,6 +42,11 @@ StatusOr<std::unique_ptr<PointCloud>> ReadPointCloudFromFile(
     // Wavefront PLY file format.
     PlyDecoder ply_decoder;
     DRACO_RETURN_IF_ERROR(ply_decoder.DecodeFromFile(file_name, pc.get()));
+    return std::move(pc);
+  }
+  if (extension == ".xyz") {
+    // Simple XYZ point cloud format.
+    DRACO_RETURN_IF_ERROR(ReadXyzPointCloudFromFile(file_name, pc.get()));
     return std::move(pc);
   }
 
