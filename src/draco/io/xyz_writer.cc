@@ -19,6 +19,7 @@ Status WriteXyzPointCloudToFile(const PointCloud &point_cloud,
   if (!out) {
     return Status(Status::DRACO_ERROR, "Unable to open output file.");
   }
+
   const PointAttribute *color_att =
       point_cloud.GetNamedAttribute(GeometryAttribute::COLOR);
   const bool has_color =

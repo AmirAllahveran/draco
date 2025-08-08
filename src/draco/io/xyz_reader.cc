@@ -18,6 +18,7 @@ Status ReadXyzPointCloudFromFile(const std::string &file_name,
   }
   std::string line;
   std::vector<float> coords;
+
   std::vector<uint8_t> colors;
   while (std::getline(in, line)) {
     if (line.empty() || line[0] == '#') {
@@ -46,6 +47,7 @@ Status ReadXyzPointCloudFromFile(const std::string &file_name,
     }
   }
 
+
   const int num_points = coords.size() / 3;
   out_point_cloud->set_num_points(num_points);
   GeometryAttribute va;
@@ -71,7 +73,6 @@ Status ReadXyzPointCloudFromFile(const std::string &file_name,
       color_att->SetAttributeValue(AttributeValueIndex(i), &colors[i * 3]);
     }
   }
-
   return OkStatus();
 }
 

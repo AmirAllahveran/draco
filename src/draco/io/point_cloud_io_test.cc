@@ -167,6 +167,7 @@ TEST_F(IoPointCloudIoTest, XyzFileOutput) {
   for (int i = 0; i < 2; ++i) {
     pos_att->SetAttributeValue(AttributeValueIndex(i), &coords[i * 3]);
   }
+
   GeometryAttribute ca;
   ca.Init(GeometryAttribute::COLOR, nullptr, 3, DT_UINT8, true,
           sizeof(uint8_t) * 3, 0);
@@ -176,6 +177,7 @@ TEST_F(IoPointCloudIoTest, XyzFileOutput) {
   for (int i = 0; i < 2; ++i) {
     col_att->SetAttributeValue(AttributeValueIndex(i), &cols[i * 3]);
   }
+
   const std::string file_name =
       GetTestTempFileFullPath("point_cloud_output.xyz");
   ASSERT_TRUE(WriteXyzPointCloudToFile(pc, file_name).ok());
@@ -195,6 +197,7 @@ TEST_F(IoPointCloudIoTest, XyzFileOutput) {
   EXPECT_FLOAT_EQ(tmp[0], 1.f);
   EXPECT_FLOAT_EQ(tmp[1], 1.f);
   EXPECT_FLOAT_EQ(tmp[2], 1.f);
+
   const PointAttribute *read_col =
       read_pc->GetNamedAttribute(GeometryAttribute::COLOR);
   ASSERT_NE(read_col, nullptr);
@@ -207,6 +210,7 @@ TEST_F(IoPointCloudIoTest, XyzFileOutput) {
   EXPECT_EQ(tmp_c[0], 0);
   EXPECT_EQ(tmp_c[1], 255);
   EXPECT_EQ(tmp_c[2], 0);
+
   std::remove(file_name.c_str());
 }
 
