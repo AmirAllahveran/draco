@@ -19,11 +19,24 @@ Status WriteXyzPointCloudToFile(const PointCloud &point_cloud,
   if (!out) {
     return Status(Status::DRACO_ERROR, "Unable to open output file.");
   }
+
+  const PointAttribute *color_att =
+      point_cloud.GetNamedAttribute(GeometryAttribute::COLOR);
+  const bool has_color =
+      color_att != nullptr && color_att->num_components() >= 3;
+
   const int num_points = point_cloud.num_points();
   std::array<float, 3> pos;
+  std::array<uint8_t, 4> color;
   for (int i = 0; i < num_points; ++i) {
     pos_att->GetMappedValue(PointIndex(i), pos.data());
-    out << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
+    out << pos[0] << " " << pos[1] << " " << pos[2];
+    if (has_color) {
+      color_att->ConvertValue(AttributeValueIndex(i), 3, color.data());
+      out << " " << static_cast<int>(color[0]) << " "
+          << static_cast<int>(color[1]) << " " << static_cast<int>(color[2]);
+    }
+    out << "\n";
   }
   if (!out) {
     return Status(Status::DRACO_ERROR, "Failed while writing to file.");

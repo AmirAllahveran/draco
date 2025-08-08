@@ -9,8 +9,9 @@
 namespace draco {
 
 // Writes the given PointCloud into an XYZ file.
-// Each line of the file will contain three floating point values
-// representing X, Y and Z coordinates.
+// Each line of the file will contain three floating point values representing
+// X, Y and Z coordinates. If the point cloud contains a COLOR attribute, three
+// additional integer values (R G B in [0,255]) will be written per line.
 Status WriteXyzPointCloudToFile(const PointCloud &point_cloud,
                                 const std::string &file_name);
 

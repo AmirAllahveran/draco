@@ -74,6 +74,10 @@ TEST_F(IoPointCloudIoTest, EncodeSequentialPointCloudTestPosXyz) {
   test_compression_method(POINT_CLOUD_SEQUENTIAL_ENCODING, 1,
                           "point_cloud_test_pos.xyz");
 }
+TEST_F(IoPointCloudIoTest, EncodeSequentialPointCloudTestPosColorXyz) {
+  test_compression_method(POINT_CLOUD_SEQUENTIAL_ENCODING, 2,
+                          "point_cloud_test_pos_color.xyz");
+}
 TEST_F(IoPointCloudIoTest, EncodeSequentialPointCloudTestPosNormObj) {
   test_compression_method(POINT_CLOUD_SEQUENTIAL_ENCODING, 2,
                           "point_cloud_test_pos_norm.obj");
@@ -95,6 +99,10 @@ TEST_F(IoPointCloudIoTest, EncodeKdTreePointCloudTestPosXyz) {
   test_compression_method(POINT_CLOUD_KD_TREE_ENCODING, 1,
                           "point_cloud_test_pos.xyz");
 }
+TEST_F(IoPointCloudIoTest, EncodeKdTreePointCloudTestPosColorXyz) {
+  test_compression_method(POINT_CLOUD_KD_TREE_ENCODING, 2,
+                          "point_cloud_test_pos_color.xyz");
+}
 
 TEST_F(IoPointCloudIoTest, ObjFileInput) {
   // Tests whether loading obj point clouds from files works as expected.
@@ -108,6 +116,21 @@ TEST_F(IoPointCloudIoTest, XyzFileInput) {
       ReadPointCloudFromTestFile("point_cloud_test_pos.xyz");
   ASSERT_NE(pc, nullptr) << "Failed to load the xyz point cloud.";
   EXPECT_EQ(pc->num_points(), 4) << "Xyz point cloud not loaded properly.";
+}
+
+TEST_F(IoPointCloudIoTest, XyzFileInputColor) {
+  const std::unique_ptr<PointCloud> pc =
+      ReadPointCloudFromTestFile("point_cloud_test_pos_color.xyz");
+  ASSERT_NE(pc, nullptr) << "Failed to load the xyz point cloud.";
+  EXPECT_EQ(pc->num_points(), 4) << "Xyz point cloud not loaded properly.";
+  const PointAttribute *color_att =
+      pc->GetNamedAttribute(GeometryAttribute::COLOR);
+  ASSERT_NE(color_att, nullptr);
+  uint8_t c[3];
+  color_att->GetMappedValue(PointIndex(0), c);
+  EXPECT_EQ(c[0], 255);
+  EXPECT_EQ(c[1], 0);
+  EXPECT_EQ(c[2], 0);
 }
 
 // Test if we handle wrong input for all file extensions.
@@ -144,6 +167,17 @@ TEST_F(IoPointCloudIoTest, XyzFileOutput) {
   for (int i = 0; i < 2; ++i) {
     pos_att->SetAttributeValue(AttributeValueIndex(i), &coords[i * 3]);
   }
+
+  GeometryAttribute ca;
+  ca.Init(GeometryAttribute::COLOR, nullptr, 3, DT_UINT8, true,
+          sizeof(uint8_t) * 3, 0);
+  const int color_att_id = pc.AddAttribute(ca, true, 2);
+  PointAttribute *col_att = pc.attribute(color_att_id);
+  const uint8_t cols[6] = {255, 0, 0, 0, 255, 0};
+  for (int i = 0; i < 2; ++i) {
+    col_att->SetAttributeValue(AttributeValueIndex(i), &cols[i * 3]);
+  }
+
   const std::string file_name =
       GetTestTempFileFullPath("point_cloud_output.xyz");
   ASSERT_TRUE(WriteXyzPointCloudToFile(pc, file_name).ok());
@@ -163,6 +197,20 @@ TEST_F(IoPointCloudIoTest, XyzFileOutput) {
   EXPECT_FLOAT_EQ(tmp[0], 1.f);
   EXPECT_FLOAT_EQ(tmp[1], 1.f);
   EXPECT_FLOAT_EQ(tmp[2], 1.f);
+
+  const PointAttribute *read_col =
+      read_pc->GetNamedAttribute(GeometryAttribute::COLOR);
+  ASSERT_NE(read_col, nullptr);
+  uint8_t tmp_c[3];
+  read_col->GetMappedValue(PointIndex(0), tmp_c);
+  EXPECT_EQ(tmp_c[0], 255);
+  EXPECT_EQ(tmp_c[1], 0);
+  EXPECT_EQ(tmp_c[2], 0);
+  read_col->GetMappedValue(PointIndex(1), tmp_c);
+  EXPECT_EQ(tmp_c[0], 0);
+  EXPECT_EQ(tmp_c[1], 255);
+  EXPECT_EQ(tmp_c[2], 0);
+
   std::remove(file_name.c_str());
 }
 
