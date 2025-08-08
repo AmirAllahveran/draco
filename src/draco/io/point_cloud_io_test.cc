@@ -69,6 +69,10 @@ TEST_F(IoPointCloudIoTest, EncodeSequentialPointCloudTestPosPly) {
   test_compression_method(POINT_CLOUD_SEQUENTIAL_ENCODING, 1,
                           "point_cloud_test_pos.ply");
 }
+TEST_F(IoPointCloudIoTest, EncodeSequentialPointCloudTestPosXyz) {
+  test_compression_method(POINT_CLOUD_SEQUENTIAL_ENCODING, 1,
+                          "point_cloud_test_pos.xyz");
+}
 TEST_F(IoPointCloudIoTest, EncodeSequentialPointCloudTestPosNormObj) {
   test_compression_method(POINT_CLOUD_SEQUENTIAL_ENCODING, 2,
                           "point_cloud_test_pos_norm.obj");
@@ -86,6 +90,10 @@ TEST_F(IoPointCloudIoTest, EncodeKdTreePointCloudTestPosPly) {
   test_compression_method(POINT_CLOUD_KD_TREE_ENCODING, 1,
                           "point_cloud_test_pos.ply");
 }
+TEST_F(IoPointCloudIoTest, EncodeKdTreePointCloudTestPosXyz) {
+  test_compression_method(POINT_CLOUD_KD_TREE_ENCODING, 1,
+                          "point_cloud_test_pos.xyz");
+}
 
 TEST_F(IoPointCloudIoTest, ObjFileInput) {
   // Tests whether loading obj point clouds from files works as expected.
@@ -93,6 +101,12 @@ TEST_F(IoPointCloudIoTest, ObjFileInput) {
       ReadPointCloudFromTestFile("test_nm.obj");
   ASSERT_NE(pc, nullptr) << "Failed to load the obj point cloud.";
   EXPECT_EQ(pc->num_points(), 97) << "Obj point cloud not loaded properly.";
+}
+TEST_F(IoPointCloudIoTest, XyzFileInput) {
+  const std::unique_ptr<PointCloud> pc =
+      ReadPointCloudFromTestFile("point_cloud_test_pos.xyz");
+  ASSERT_NE(pc, nullptr) << "Failed to load the xyz point cloud.";
+  EXPECT_EQ(pc->num_points(), 4) << "Xyz point cloud not loaded properly.";
 }
 
 // Test if we handle wrong input for all file extensions.
@@ -104,6 +118,11 @@ TEST_F(IoPointCloudIoTest, WrongFileObj) {
 TEST_F(IoPointCloudIoTest, WrongFilePly) {
   const std::unique_ptr<PointCloud> pc =
       ReadPointCloudFromTestFile("wrong_file_name.ply");
+  ASSERT_EQ(pc, nullptr);
+}
+TEST_F(IoPointCloudIoTest, WrongFileXyz) {
+  const std::unique_ptr<PointCloud> pc =
+      ReadPointCloudFromTestFile("wrong_file_name.xyz");
   ASSERT_EQ(pc, nullptr);
 }
 TEST_F(IoPointCloudIoTest, WrongFile) {

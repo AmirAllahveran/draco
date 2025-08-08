@@ -408,6 +408,8 @@ list(
          "${draco_src_root}/io/ply_property_writer.h"
          "${draco_src_root}/io/ply_reader.cc"
          "${draco_src_root}/io/ply_reader.h"
+         "${draco_src_root}/io/xyz_reader.cc"
+         "${draco_src_root}/io/xyz_reader.h"
          "${draco_src_root}/io/stl_decoder.cc"
          "${draco_src_root}/io/stl_decoder.h"
          "${draco_src_root}/io/stl_encoder.cc"
