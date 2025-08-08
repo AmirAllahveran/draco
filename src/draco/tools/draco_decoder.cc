@@ -21,6 +21,7 @@
 #include "draco/io/parser_utils.h"
 #include "draco/io/ply_encoder.h"
 #include "draco/io/stl_encoder.h"
+#include "draco/io/xyz_writer.h"
 
 namespace {
 
@@ -170,8 +171,18 @@ int main(int argc, char **argv) {
       printf("Can't store a point cloud as STL.\n");
       return -1;
     }
+  } else if (extension == ".xyz") {
+    if (mesh) {
+      printf("Can't store a mesh as XYZ.\n");
+      return -1;
+    }
+    draco::Status s = draco::WriteXyzPointCloudToFile(*pc, options.output);
+    if (s.code() != draco::Status::OK) {
+      printf("Failed to store the decoded point cloud as XYZ.\n");
+      return -1;
+    }
   } else {
-    printf("Invalid output file extension. Use .obj .ply or .stl.\n");
+    printf("Invalid output file extension. Use .obj .ply .stl or .xyz.\n");
     return -1;
   }
   printf("Decoded geometry saved to %s (%" PRId64 " ms to decode)\n",

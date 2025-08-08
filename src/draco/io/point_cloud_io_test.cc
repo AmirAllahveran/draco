@@ -19,6 +19,7 @@
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 #include "draco/io/obj_decoder.h"
+#include "draco/io/xyz_writer.h"
 
 namespace draco {
 
@@ -69,6 +70,10 @@ TEST_F(IoPointCloudIoTest, EncodeSequentialPointCloudTestPosPly) {
   test_compression_method(POINT_CLOUD_SEQUENTIAL_ENCODING, 1,
                           "point_cloud_test_pos.ply");
 }
+TEST_F(IoPointCloudIoTest, EncodeSequentialPointCloudTestPosXyz) {
+  test_compression_method(POINT_CLOUD_SEQUENTIAL_ENCODING, 1,
+                          "point_cloud_test_pos.xyz");
+}
 TEST_F(IoPointCloudIoTest, EncodeSequentialPointCloudTestPosNormObj) {
   test_compression_method(POINT_CLOUD_SEQUENTIAL_ENCODING, 2,
                           "point_cloud_test_pos_norm.obj");
@@ -86,6 +91,10 @@ TEST_F(IoPointCloudIoTest, EncodeKdTreePointCloudTestPosPly) {
   test_compression_method(POINT_CLOUD_KD_TREE_ENCODING, 1,
                           "point_cloud_test_pos.ply");
 }
+TEST_F(IoPointCloudIoTest, EncodeKdTreePointCloudTestPosXyz) {
+  test_compression_method(POINT_CLOUD_KD_TREE_ENCODING, 1,
+                          "point_cloud_test_pos.xyz");
+}
 
 TEST_F(IoPointCloudIoTest, ObjFileInput) {
   // Tests whether loading obj point clouds from files works as expected.
@@ -93,6 +102,12 @@ TEST_F(IoPointCloudIoTest, ObjFileInput) {
       ReadPointCloudFromTestFile("test_nm.obj");
   ASSERT_NE(pc, nullptr) << "Failed to load the obj point cloud.";
   EXPECT_EQ(pc->num_points(), 97) << "Obj point cloud not loaded properly.";
+}
+TEST_F(IoPointCloudIoTest, XyzFileInput) {
+  const std::unique_ptr<PointCloud> pc =
+      ReadPointCloudFromTestFile("point_cloud_test_pos.xyz");
+  ASSERT_NE(pc, nullptr) << "Failed to load the xyz point cloud.";
+  EXPECT_EQ(pc->num_points(), 4) << "Xyz point cloud not loaded properly.";
 }
 
 // Test if we handle wrong input for all file extensions.
@@ -106,10 +121,49 @@ TEST_F(IoPointCloudIoTest, WrongFilePly) {
       ReadPointCloudFromTestFile("wrong_file_name.ply");
   ASSERT_EQ(pc, nullptr);
 }
+TEST_F(IoPointCloudIoTest, WrongFileXyz) {
+  const std::unique_ptr<PointCloud> pc =
+      ReadPointCloudFromTestFile("wrong_file_name.xyz");
+  ASSERT_EQ(pc, nullptr);
+}
 TEST_F(IoPointCloudIoTest, WrongFile) {
   const std::unique_ptr<PointCloud> pc =
       ReadPointCloudFromTestFile("wrong_file_name");
   ASSERT_EQ(pc, nullptr);
+}
+
+TEST_F(IoPointCloudIoTest, XyzFileOutput) {
+  PointCloud pc;
+  pc.set_num_points(2);
+  GeometryAttribute va;
+  va.Init(GeometryAttribute::POSITION, nullptr, 3, DT_FLOAT32, false,
+          sizeof(float) * 3, 0);
+  const int att_id = pc.AddAttribute(va, true, 2);
+  PointAttribute *pos_att = pc.attribute(att_id);
+  const float coords[6] = {0.f, 0.f, 0.f, 1.f, 1.f, 1.f};
+  for (int i = 0; i < 2; ++i) {
+    pos_att->SetAttributeValue(AttributeValueIndex(i), &coords[i * 3]);
+  }
+  const std::string file_name =
+      GetTestTempFileFullPath("point_cloud_output.xyz");
+  ASSERT_TRUE(WriteXyzPointCloudToFile(pc, file_name).ok());
+  auto status_or = ReadPointCloudFromFile(file_name);
+  ASSERT_TRUE(status_or.ok());
+  std::unique_ptr<PointCloud> read_pc = std::move(status_or).value();
+  ASSERT_EQ(read_pc->num_points(), 2);
+  const PointAttribute *read_pos =
+      read_pc->GetNamedAttribute(GeometryAttribute::POSITION);
+  ASSERT_NE(read_pos, nullptr);
+  float tmp[3];
+  read_pos->GetMappedValue(PointIndex(0), tmp);
+  EXPECT_FLOAT_EQ(tmp[0], 0.f);
+  EXPECT_FLOAT_EQ(tmp[1], 0.f);
+  EXPECT_FLOAT_EQ(tmp[2], 0.f);
+  read_pos->GetMappedValue(PointIndex(1), tmp);
+  EXPECT_FLOAT_EQ(tmp[0], 1.f);
+  EXPECT_FLOAT_EQ(tmp[1], 1.f);
+  EXPECT_FLOAT_EQ(tmp[2], 1.f);
+  std::remove(file_name.c_str());
 }
 
 }  // namespace draco
